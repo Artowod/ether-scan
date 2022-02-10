@@ -7,7 +7,13 @@
 var app = require("../app");
 var debug = require("debug")("etherscan-back:server");
 var http = require("http");
-const { initialDataPushingToDB, CESCheck, getBlockByNumber } = require("../middlewares/transactions-middleware");
+const {
+  initialDataPushingToDB,
+  CESCheck,
+  getBlockByNumber,
+  getTransactionByHash,
+  getTransactionsByBlockNumber,
+} = require("../controllers/etherium-controllers");
 
 /**
  * Get port from environment and store in Express.
@@ -29,11 +35,28 @@ var server = http.createServer(app);
 server.listen(port);
 server.on("error", onError);
 server.on("listening", onListening);
-server.on("listening", initialDataPushingToDB);
-server.on("listening", CESCheck);
+
+//==================================================
+//==================================================
+//==================================================
+
+// server.on("listening", initialDataPushingToDB);
+// server.on("listening", CESCheck);
 server.on("listening", () => {
-  getBlockByNumber(2165403);
+  getBlockByNumber("0xD860F2");
 });
+
+// server.on("listening", () => {
+//   getTransactionsByBlockNumber("0xD860F2");
+// });
+
+// server.on("listening", () => {
+//   getTransactionByHash("4ce799d88a1c1d0f4bfcda5645be8275d14e8daf5da969a28fa8161d604e3cc6");
+// });
+
+//==================================================
+//==================================================
+//==================================================
 
 /**
  * Normalize a port into a number, string, or false.

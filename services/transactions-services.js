@@ -1,7 +1,6 @@
-/* ----------------- Todos DB Handling ------------------ */
+/* ----------------- Transactions DB Handling ------------------ */
 
 const Block = require("../Schemas/block-schema");
-const Transaction = require("../Schemas/transaction-schema");
 
 async function getBlock(data) {
   try {

@@ -1,17 +1,37 @@
 const transactionsServices = require("../services/transactions-services");
 
-const getAll = (req, res) => {
-  res.json({ message: " All transactions" });
+// --------------------------
+// - Input поиска транзакции
+// --------------------------
+// по адресу получателя,
+// по адресу отправителя,
+// по id транзакции,
+// по номеру блока,
+// --------------------------
+
+const getTransactionsByRecipientAddr = (req, res) => {
+  const data = {};
+  res.json({ message: "Transactions By Recipient Address", status: "Success", data });
 };
 
-const getBlockByNumber = (req, res) => {
-  transactionsServices.getBlock();
-  res.json({ message: ` Block by number ${req.params.blockNumber}` });
+const getTransactionsBySenderAddr = (req, res) => {
+  const data = {};
+  res.json({ message: "Transactions By Sender Address", status: "Success", data });
 };
 
-const getTransactionByHash = (req, res) => {
-  transactionsServices.getTransaction();
-  res.json({ message: `Transaction By Hash <${req.params.transactionHash}>` });
+const getTransactionById = (req, res) => {
+  const data = {};
+  res.json({ message: "Transactions By ID", status: "Success", data });
 };
 
-module.exports = { getAll, getBlockByNumber, getTransactionByHash };
+const getTransactionsByBlockNum = (req, res) => {
+  const data = {};
+  res.json({ message: "Transactions By Block Number", status: "Success", data });
+};
+
+module.exports = {
+  getTransactionsByRecipientAddr,
+  getTransactionsBySenderAddr,
+  getTransactionById,
+  getTransactionsByBlockNum,
+};
