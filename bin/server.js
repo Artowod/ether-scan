@@ -4,16 +4,21 @@
  * Module dependencies.
  */
 
-var app = require("../app");
-var debug = require("debug")("etherscan-back:server");
-var http = require("http");
+const app = require("../app");
+const debug = require("debug")("etherscan-back:server");
+const http = require("http");
 const {
   initialDataPushingToDB,
   CESCheck,
   getBlockByNumber,
   getTransactionByHash,
   getTransactionsByBlockNumber,
-} = require("../controllers/etherium-controllers");
+  getRecentBlockNumber,
+  getFirstBlocks,
+} = require("../services/etherium-functions");
+
+global.blockCount = 0;
+global.uniqueBlockNumber = "";
 
 /**
  * Get port from environment and store in Express.
@@ -43,8 +48,26 @@ server.on("listening", onListening);
 // server.on("listening", initialDataPushingToDB);
 // server.on("listening", CESCheck);
 server.on("listening", () => {
-  getBlockByNumber("0xD860F2");
+  // const recentBlockNum = getRecentBlockNumber();
+  // setTimeout(() => {
+  // getBlockByNumber("0xd87bb8");
+  // }, 2000);
+  // getRecentBlockNumber();
+  //  getFirstBlocks(40);
 });
+
+// server.on("listening", () => {
+//   // const id = setInterval(() => {
+//   let blockNum = getRecentBlockNumber();
+//   console.log("BlockNum...", blockNum);
+
+//   // if (uniqueBlockNumber !== blockNum) {
+//   //   uniqueBlockNumber = blockNum;
+//   //   blockCount = +1;
+//   //   console.log("Count:", blockCount, " ", uniqueBlockNumber);
+//   // }
+//   // }, 1000);
+// });
 
 // server.on("listening", () => {
 //   getTransactionsByBlockNumber("0xD860F2");

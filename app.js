@@ -4,6 +4,7 @@ const path = require("path");
 const cookieParser = require("cookie-parser");
 const logger = require("morgan");
 const transactionsRouter = require("./routes/transactions-routes");
+const etheriumRouter = require("./routes/etherium-routes");
 
 const app = express();
 
@@ -19,6 +20,10 @@ app.use(express.static(path.join(__dirname, "public")));
 // app.use(initialDataPushingToDB);
 
 app.use("/api/transactions/", transactionsRouter);
+app.use("/api/etherium/", etheriumRouter);
+app.use(function (err, req, res, next) {
+  console.log("Error appeared: ", err);
+});
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
