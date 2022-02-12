@@ -23,11 +23,12 @@ const joiTransBySenderSchema = Joi.object({
     .required(),
 });
 
+//example: "id":1
 const joiTransByIdSchema = Joi.object({
   id: Joi.number().required(),
 });
 
-//example: 0xC36B3C
+//example: "blockNumber":"0xcf2420"
 const joiTransByBlockIdSchema = Joi.object({
   tag: Joi.string()
     .regex(/^0x[a-fA-F0-9]*$/)

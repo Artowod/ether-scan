@@ -3,6 +3,9 @@
 /**
  * Module dependencies.
  */
+const mongoose = require("mongoose");
+require("dotenv").config();
+mongoose.Promise = global.Promise;
 
 const app = require("../app");
 const debug = require("debug")("etherscan-back:server");
@@ -17,44 +20,59 @@ const {
   getFirstBlocks,
 } = require("../services/etherium-functions");
 
-global.blockCount = 0;
-global.uniqueBlockNumber = "";
-
 /**
  * Get port from environment and store in Express.
  */
 
-var port = normalizePort(process.env.PORT || "3000");
-app.set("port", port);
+const PORT = process.env.PORT || "3000";
+// app.set("port", port);
 
 /**
  * Create HTTP server.
  */
 
-var server = http.createServer(app);
+// const server = http.createServer(app);
 
 /**
  * Listen on provided port, on all network interfaces.
  */
 
-server.listen(port);
-server.on("error", onError);
-server.on("listening", onListening);
+// server.listen(port);
+// // server.on("error", onError);
+// server.on("listening", () => console.log("Server is online."));
+// server.on("listening", () => {
+//   getRecentBlockNumber();
+// });
 
+try {
+  const session = mongoose.connect(process.env.DB_HOST_REMOTE);
+  session.then((data) => {
+    data.connections[0].name &&
+      app.listen(PORT, () => {
+        const { port, name } = data.connections[0];
+        console.log(`Database connection successfully. DB name is "${name}" on port "${port}".`);
+        console.log("PORT", PORT);
+      });
+  });
+} catch (error) {
+  console.log("DB connection Error: ");
+  process.exit(1);
+}
 //==================================================
 //==================================================
 //==================================================
 
 // server.on("listening", initialDataPushingToDB);
 // server.on("listening", CESCheck);
-server.on("listening", () => {
-  // const recentBlockNum = getRecentBlockNumber();
-  // setTimeout(() => {
-  // getBlockByNumber("0xd87bb8");
-  // }, 2000);
-  // getRecentBlockNumber();
-  //  getFirstBlocks(40);
-});
+
+// server.on("listening", () => {
+// const recentBlockNum = getRecentBlockNumber();
+// setTimeout(() => {
+// getBlockByNumber("0xd87bb8");
+// }, 2000);
+// getRecentBlockNumber();
+//  getFirstBlocks(40);
+// });
 
 // server.on("listening", () => {
 //   // const id = setInterval(() => {
@@ -82,58 +100,40 @@ server.on("listening", () => {
 //==================================================
 
 /**
- * Normalize a port into a number, string, or false.
- */
-
-function normalizePort(val) {
-  var port = parseInt(val, 10);
-
-  if (isNaN(port)) {
-    // named pipe
-    return val;
-  }
-
-  if (port >= 0) {
-    // port number
-    return port;
-  }
-
-  return false;
-}
-
-/**
  * Event listener for HTTP server "error" event.
  */
 
-function onError(error) {
-  if (error.syscall !== "listen") {
-    throw error;
-  }
+// function onError(error) {
+//   if (error.syscall !== "listen") {
+//     throw error;
+//   }
 
-  var bind = typeof port === "string" ? "Pipe " + port : "Port " + port;
+//   var bind = typeof port === "string" ? "Pipe " + port : "Port " + port;
 
-  // handle specific listen errors with friendly messages
-  switch (error.code) {
-    case "EACCES":
-      console.error(bind + " requires elevated privileges");
-      process.exit(1);
-      break;
-    case "EADDRINUSE":
-      console.error(bind + " is already in use");
-      process.exit(1);
-      break;
-    default:
-      throw error;
-  }
-}
+//   // handle specific listen errors with friendly messages
+//   switch (error.code) {
+//     case "EACCES":
+//       console.error(bind + " requires elevated privileges");
+//       process.exit(1);
+//       break;
+//     case "EADDRINUSE":
+//       console.error(bind + " is already in use");
+//       process.exit(1);
+//       break;
+//     default:
+//       throw error;
+//   }
+// }
 
 /**
  * Event listener for HTTP server "listening" event.
  */
 
-function onListening() {
-  console.log("HI!");
-  var addr = server.address();
-  var bind = typeof addr === "string" ? "pipe " + addr : "port " + addr.port;
-  debug("Listening on " + bind);
-}
+// function onListening() {
+//   console.log("HI!");
+//   var addr = server.address();
+//   var bind = typeof addr === "string" ? "pipe " + addr : "port " + addr.port;
+//   debug("Listening on " + bind);
+// }
+
+module.exports = mongoose;

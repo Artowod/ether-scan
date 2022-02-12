@@ -65,7 +65,10 @@ const getTransactionsByBlockNumber = async (req, res, next) => {
     boolean: true,
     apikey: process.env.API_KEY,
   };
-  const { data } = await axios.get(`https://api.etherscan.io/api`, { params });
+
+  const data = await etheriumServices.getTransactionByBlockNumber(params);
+  // const { data } = await axios.get(`https://api.etherscan.io/api`, { params });
+  etheriumServices.addTransactionsToDB(data.result.transactions);
   res.json(data.result.transactions);
 };
 

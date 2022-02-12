@@ -3,13 +3,14 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "start": "node ./bin/server.js",
-    "dev": "node ./bin/server.js"
+    "start": "cross-env NODE_ENV=production node ./bin/server.js",
+    "dev": "cross-env NODE_ENV=development nodemon ./bin/server.js"
   },
   "dependencies": {
     "axios": "^0.25.0",
     "chalk": "^5.0.0",
     "cookie-parser": "~1.4.4",
+    "cross-env": "^7.0.3",
     "debug": "~2.6.9",
     "dotenv": "^16.0.0",
     "env": "0.0.2",

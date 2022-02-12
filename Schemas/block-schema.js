@@ -1,11 +1,11 @@
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
-const Joi = require("joi");
 const blockSchema = new Schema(
   {
-    jsonrpc: { type: String },
-    id: { type: Number },
-    result: { type: Object },
+    hash: { type: String },
+    number: { type: String },
+    size: { type: String },
+    transactionsCount: { type: Number },
   },
   { versionKey: false, timestamps: true }
 );

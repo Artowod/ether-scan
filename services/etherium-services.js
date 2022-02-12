@@ -1,15 +1,25 @@
 /* ----------------- Etherium data to DB - streaming Handling ------------------ */
+const axios = require("axios");
+const { Block } = require("../Schemas/block-schema");
+const { Transaction } = require("../Schemas/transaction-schema");
 
-const Block = require("../Schemas/block-schema");
-
-async function pushBlockToDB(data) {
+async function getTransactionByBlockNumber(params) {
   try {
-    //    const result = await Block.find(data);
-    let block = {};
-    console.log("Getting Block...");
-    return block;
+    const { data } = await axios.get(`https://api.etherscan.io/api`, { params });
+    return data;
   } catch (error) {
-    console.log("Error: ", error);
+    console.log("Error in getTransactionByBlockNumber: ", error);
   }
 }
-module.exports = { pushBlockToDB };
+
+async function addTransactionsToDB(transactions) {
+  try {
+    const result = await Transaction.create(transactions);
+    if (!result) throw new Error("Bad request");
+    return result;
+  } catch (error) {
+    console.log("Error in addTransactionsToDB: ", error);
+  }
+}
+
+module.exports = { getTransactionByBlockNumber, addTransactionsToDB };
