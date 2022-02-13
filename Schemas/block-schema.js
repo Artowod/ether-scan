@@ -10,6 +10,6 @@ const blockSchema = new Schema(
   { versionKey: false, timestamps: true }
 );
 
-const Block = mongoose.model("Blocks", blockSchema);
+const Block = mongoose.model("blocks", blockSchema);
 
 module.exports = { Block };

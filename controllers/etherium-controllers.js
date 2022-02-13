@@ -5,10 +5,9 @@ require("dotenv").config();
 // - requests to API etherscan.io - for dev mode only
 // --------------------------
 // getRecentBlockNumber
-// CESCheck
-// getBlockByNumber
-// getTransactionsByBlockNumber
-// getTransactionByHash
+//+ getBlockByNumber
+//+ getTransactionsByBlockNumber
+//+ getTransactionByHash
 // --------------------------
 
 const getRecentBlockNumber = async (req, res, next) => {
@@ -20,17 +19,12 @@ const getRecentBlockNumber = async (req, res, next) => {
       apikey: process.env.API_KEY,
     };
 
-    const { data } = await axios.get(`https://api.etherscan.io/api`, { params });
+    const data = await etheriumServices.getDataFromEtherium(params);
     const recentBlockNumber = data.result;
     res.json(recentBlockNumber);
   } catch (error) {
     next(error);
   }
-};
-
-const CESCheck = (req, res) => {
-  const data = {};
-  res.json(data);
 };
 
 const getBlockByNumber = async (req, res, next) => {
@@ -45,9 +39,8 @@ const getBlockByNumber = async (req, res, next) => {
       apikey: process.env.API_KEY,
     };
 
-    const { data } = await axios.get(`https://api.etherscan.io/api`, { params });
-
-    res.json(data);
+    const data = await etheriumServices.getDataFromEtherium(params);
+    res.json(data.result);
   } catch (err) {
     if (err.errno === -4077) console.log(`Can not get the block ${req.params.blockNumber}. Timeout exeeded. `);
     else next(err.errno);
@@ -66,19 +59,32 @@ const getTransactionsByBlockNumber = async (req, res, next) => {
     apikey: process.env.API_KEY,
   };
 
-  const data = await etheriumServices.getTransactionByBlockNumber(params);
-  // const { data } = await axios.get(`https://api.etherscan.io/api`, { params });
-  etheriumServices.addTransactionsToDB(data.result.transactions);
-  res.json(data.result.transactions);
+  const data = await etheriumServices.getDataFromEtherium(params);
+  const isBlockExistsInDB = await etheriumServices.addBlockToDB(data.result);
+  if (isBlockExistsInDB) {
+    res.json(data.result.transactions);
+  } else {
+    etheriumServices.addBlockTransactionsToDB(data.result.transactions);
+    res.json(data.result.transactions);
+  }
 };
 
-const getTransactionByHash = (req, res) => {
-  const data = {};
-  res.json(data);
+const getTransactionByHash = async (req, res) => {
+  /* Returns the information about a transaction requested by transaction hash. */
+
+  console.log("Getting transaction by its hash...");
+  const params = {
+    module: "proxy",
+    action: "eth_getTransactionByHash",
+    txhash: req.params.hash,
+    apikey: process.env.API_KEY,
+  };
+
+  const data = await etheriumServices.getDataFromEtherium(params);
+  res.json(data.result);
 };
 module.exports = {
   getRecentBlockNumber,
-  CESCheck,
   getBlockByNumber,
   getTransactionsByBlockNumber,
   getTransactionByHash,
