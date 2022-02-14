@@ -10,28 +10,20 @@ mongoose.Promise = global.Promise;
 const app = require("../app");
 const debug = require("debug")("etherscan-back:server");
 const http = require("http");
-const {
-  initialDataPushingToDB,
-  CESCheck,
-  getBlockByNumber,
-  getTransactionByHash,
-  getTransactionsByBlockNumber,
-  getRecentBlockNumber,
-  getFirstBlocks,
-} = require("../services/etherium-functions");
+const { etheriumCheckInLoop } = require("../services/etherium-services");
 
 /**
  * Get port from environment and store in Express.
  */
 
 const PORT = process.env.PORT || "3001";
-// app.set("port", port);
+app.set("port", PORT); //????
 
 /**
  * Create HTTP server.
  */
 
-// const server = http.createServer(app);
+const server = http.createServer(app); //????
 
 /**
  * Listen on provided port, on all network interfaces.
@@ -66,26 +58,18 @@ try {
 // server.on("listening", CESCheck);
 
 // server.on("listening", () => {
-// const recentBlockNum = getRecentBlockNumber();
-// setTimeout(() => {
-// getBlockByNumber("0xd87bb8");
-// }, 2000);
-// getRecentBlockNumber();
-//  getFirstBlocks(40);
+//   const recentBlockNum = getRecentBlockNumber();
+//   setTimeout(() => {
+//     getBlockByNumber("0xd87bb8");
+//   }, 2000);
+//   getRecentBlockNumber();
+//   getFirstBlocks(40);
 // });
 
-// server.on("listening", () => {
-//   // const id = setInterval(() => {
-//   let blockNum = getRecentBlockNumber();
-//   console.log("BlockNum...", blockNum);
-
-//   // if (uniqueBlockNumber !== blockNum) {
-//   //   uniqueBlockNumber = blockNum;
-//   //   blockCount = +1;
-//   //   console.log("Count:", blockCount, " ", uniqueBlockNumber);
-//   // }
-//   // }, 1000);
-// });
+//????
+server.on("listening", () => {
+  const loopId = setInterval(etheriumCheckInLoop, 5000);
+});
 
 // server.on("listening", () => {
 //   getTransactionsByBlockNumber("0xD860F2");
