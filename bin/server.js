@@ -10,7 +10,7 @@ mongoose.Promise = global.Promise;
 const app = require("../app");
 const debug = require("debug")("etherscan-back:server");
 const http = require("http");
-const { etheriumCheckInLoop } = require("../services/etherium-services");
+const { etheriumCheckInLoop, putFirstBlocksToDB } = require("../services/etherium-services");
 
 /**
  * Get port from environment and store in Express.
@@ -47,9 +47,17 @@ try {
         console.log("PORT", PORT);
       });
   });
-  server.on("listening", () => {
-    etheriumCheckInLoop();
+  server.on("listening", async () => {
+    //    await putFirstBlocksToDB(50);
+    // await etheriumCheckInLoop();
     // const loopId = setInterval(etheriumCheckInLoop, 5000);
+    const loopId = setTimeout(
+      async function () {
+        await putFirstBlocksToDB(5);
+        //   await etheriumCheckInLoop();
+      } /* etheriumCheckInLoop */,
+      10000
+    );
   });
 } catch (error) {
   console.log("DB connection Error: ", error);

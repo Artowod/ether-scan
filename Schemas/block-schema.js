@@ -8,6 +8,7 @@ const blockSchema = new Schema(
     timestamp: { type: String },
     baseFeePerGas: { type: String },
     confirmations: { type: String },
+    transactions: { type: Array },
     transactionsCount: { type: Number },
   },
   { versionKey: false, timestamps: true }
