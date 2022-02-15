@@ -22,6 +22,9 @@ const transactionSchema = new Schema(
     v: { type: String },
     r: { type: String },
     s: { type: String },
+    timestamp: { type: String },
+    confirmations: { type: Number },
+    transactionFee: { type: String },
   },
   { versionKey: false, timestamps: true }
 );

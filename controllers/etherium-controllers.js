@@ -59,7 +59,7 @@ const getTransactionsByBlockNumber = async (req, res, next) => {
   if (isBlockExistsInDB) {
     res.json(blockByNum.result.transactions);
   } else {
-    etheriumServices.addBlockTransactionsToDB(blockByNum.result.transactions);
+    etheriumServices.addTransactionsToDB(blockByNum.result.transactions);
     res.json(blockByNum.result.transactions);
   }
 };

@@ -29,8 +29,9 @@ const server = http.createServer(app); //????
  * Listen on provided port, on all network interfaces.
  */
 
-// server.listen(port);
-// // server.on("error", onError);
+server.listen("3002");
+
+// server.on("error", onError);
 // server.on("listening", () => console.log("Server is online."));
 // server.on("listening", () => {
 //   getRecentBlockNumber();
@@ -46,8 +47,12 @@ try {
         console.log("PORT", PORT);
       });
   });
+  server.on("listening", () => {
+    etheriumCheckInLoop();
+    // const loopId = setInterval(etheriumCheckInLoop, 5000);
+  });
 } catch (error) {
-  console.log("DB connection Error: ");
+  console.log("DB connection Error: ", error);
   process.exit(1);
 }
 //==================================================
@@ -67,10 +72,13 @@ try {
 // });
 
 //????
-server.on("listening", () => {
-  const loopId = setInterval(etheriumCheckInLoop, 5000);
-});
+//====================================================================
 
+// server.on("listening", () => {
+//   const loopId = setInterval(etheriumCheckInLoop, 5000);
+// });
+
+//====================================================================
 // server.on("listening", () => {
 //   getTransactionsByBlockNumber("0xD860F2");
 // });

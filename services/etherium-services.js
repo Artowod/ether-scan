@@ -9,21 +9,20 @@ async function getDataFromEtherium(params) {
     const { data } = await axios.get(`https://api.etherscan.io/api`, { params });
     return data;
   } catch (err) {
-    console.log("Error in getDataFromEtherium: ", err.errno);
+    console.log("Error in getDataFromEtherium: ", err);
     if (err.errno === -4077) console.log(`Can not get the data. Timeout exeeded. `);
     else next(err.errno);
   }
 }
 
 //+ needs for controllers
-async function addBlockTransactionsToDB(transactions) {
+async function addTransactionsToDB(transactions) {
   try {
     const result = await Transaction.create(transactions);
     if (!result) throw new Error("Bad request");
   } catch (err) {
-    console.log("Error in addTransactionsToDB: ", error.errno);
+    console.log("Error in addTransactionsToDB: ", err);
     if (err.errno === -4077) console.log(`Can not get the data. Timeout exeeded. `);
-    else next(err.errno);
   }
 }
 
@@ -43,17 +42,17 @@ async function addBlockToDB({ hash, number, size, timestamp, baseFeePerGas, tran
       baseFeePerGas,
       transactionsCount: transactions.length,
     };
-    console.log("block ", minimizedBlock);
+    //     console.log("block ", minimizedBlock);
     const result = await Block.create(minimizedBlock);
     if (!result) throw new Error("Bad request");
   } catch (err) {
     console.log("Error in addBlockToDB: ", err.errno);
     if (err.errno === -4077) console.log(`Can not get the data. Timeout exeeded. `);
-    else next(err.errno);
   }
 }
 
 // needs for etheriumCheckInLoop function (transactions update and store to DB)
+
 async function getConfirmationsCount(currentBlockNum) {
   console.log("Counting how many blocks appeared after current block...");
   const params = {
@@ -62,7 +61,7 @@ async function getConfirmationsCount(currentBlockNum) {
     apikey: process.env.API_KEY,
   };
   const recentBlock = await getDataFromEtherium(params);
-  console.log("RB:", recentBlock);
+  // console.log("RB:", recentBlock);
   const result = recentBlock.result.toString(10) - currentBlockNum.toString(10);
   console.log(`${result} blocks were mined after that.`);
   return result;
@@ -122,10 +121,10 @@ async function getBlockByNumber(blockNumber) {
 
     const { data } = await axios.get(`https://api.etherscan.io/api`, { params });
 
-    console.log("--------------------------------------");
-    console.log(`Block num: ${blockNumber}`);
-    console.log("--------------------------------------");
-    console.log(data.result);
+    // console.log("--------------------------------------");
+    // console.log(`Block num: ${blockNumber}`);
+    // console.log("--------------------------------------");
+    // console.log(data.result);
     return data.result;
   } catch (err) {
     if (err.errno === -4077) console.log(`Can not get the block ${blockNumber}. Timeout exeeded. `);
@@ -133,23 +132,22 @@ async function getBlockByNumber(blockNumber) {
   }
 }
 
-function getTransactionsByBlockNumber(blockNumber) {
+async function getTransactionsByBlockNumber(blockNumber) {
   /* Returns information about transactions of block by block number. */
-
-  console.log("Getting Block and its transactions by number...");
-  const params = {
-    module: "proxy",
-    action: "eth_getBlockByNumber",
-    tag: blockNumber,
-    boolean: true,
-    apikey: process.env.API_KEY,
-  };
-  axios
-    .get(`https://api.etherscan.io/api`, { params })
-    .then(({ data }) => {
-      console.log("Block transactions: ", data.result.transactions);
-    })
-    .catch((error) => console.log("Error: ", error));
+  try {
+    console.log("Getting Block and its transactions by number...");
+    const params = {
+      module: "proxy",
+      action: "eth_getBlockByNumber",
+      tag: blockNumber,
+      boolean: true,
+      apikey: process.env.API_KEY,
+    };
+    const { data } = await axios.get(`https://api.etherscan.io/api`, { params });
+    return data.result.transactions;
+  } catch (error) {
+    console.log("Error: ", error);
+  }
 }
 
 function getTransactionByHash(hash) {
@@ -173,35 +171,40 @@ function getTransactionByHash(hash) {
 
 const updateAllExistingTransactions = async (recentBlock) => {
   try {
+    // console.log("recentBlock", recentBlock);
     const allData = await Transaction.find();
     //  Transaction.updateMany({}, { $set: { confirmations: (transaction.blockNumber - recentBlockNum).toString(10) } });
+    // console.log("allData", allData);
     const { number: recentBlockNum } = recentBlock;
     // const result = allData.map((transaction) => ({
     //   ...transaction,
     //   confirmations: (transaction.blockNumber - recentBlockNum).toString(10),
     // }));
 
-    allData.forEach(({ hash, blockNumber }) => {
-      Transaction.findOneAndUpdate({ hash }, { confirmations: (recentBlockNum - blockNumber).toString(10) });
-    });
+    for (const { hash, blockNumber } of allData) {
+      // console.log("hash", hash);
+      // console.log("blockNumber", blockNumber);
+      // console.log("recentBlockNum", recentBlockNum);
+      const confirmations = parseInt(recentBlockNum, 16) - parseInt(blockNumber, 16);
+      // console.log(confirmations);
+      await Transaction.findOneAndUpdate({ hash }, { confirmations });
+    }
   } catch (err) {
-    console.log("Error in updateAllExistingTransactions: ", err.errno);
+    console.log("Error in updateAllExistingTransactions: ", err);
     if (err.errno === -4077) console.log(`Can not get the data. Timeout exeeded. `);
-    else next(err.errno);
   }
-  /* 
- =====cool example==========
-Promise.allSettled(urls.map((url) => fetch(url))).then((results) => {
-  // (*)
-  results.forEach((result, num) => {
-    if (result.status == "fulfilled") {
-      alert(`${urls[num]}: ${result.value.status}`);
-    }
-    if (result.status == "rejected") {
-      alert(`${urls[num]}: ${result.reason}`);
-    }
-  });
-}); 
+
+  /*
+ =====cool example if we need parralel work==========
+async function printFiles () {
+  const files = await getFilePaths();
+
+  await Promise.all(files.map(async (file) => {
+    const contents = await fs.readFile(file, 'utf8')
+    console.log(contents)
+  }));
+}
+=====cool example if we need parralel work==========
 
 */
 
@@ -210,29 +213,90 @@ Promise.allSettled(urls.map((url) => fetch(url))).then((results) => {
   // });
 };
 
-const addFieldsToTransaction = async (recentBlock) => {
-  const allData = await Transaction.find();
-  const { number = recentBlockNum, timestamp, baseFeePerGas } = recentBlock;
-  allData.map((transaction) => ({
-    ...transaction,
-    confirmations: (transaction.blockNumber - recentBlockNum).toString(10),
-    timestamp,
-  }));
+const addFieldsToRecentBlockTransactions = async (recentBlock) => {
+  try {
+    // console.log("-recentBlock", recentBlock);
+    const recentBlockTransactions = await getTransactionsByBlockNumber(recentBlock.number);
+    // console.log("-recentBlockTransactions", recentBlockTransactions);
+    const { timestamp, baseFeePerGas } = recentBlock;
+    const modifiedTransactions = recentBlockTransactions.map((transaction) => {
+      //fee in eth
+      // TWO VARIANT !!! - what is Correct ???
+
+      // in etherium docs!
+      const baseFeePerGasNumber = +baseFeePerGas.toString(16);
+      const gasNumber = +transaction.gas.toString(16);
+      const maxFeePerGasNumber = transaction.maxFeePerGas ? +transaction.maxFeePerGas.toString(16) : 0;
+      const transactionFee = (
+        ((baseFeePerGasNumber + maxFeePerGasNumber) * gasNumber) /
+        1000000000 /
+        1000000000
+      ).toFixed(9);
+      console.log(transactionFee);
+
+      // on https://etherscan.io/tx/
+      // const gasNumber = +transaction.gas.toString(16);
+      // const gasPriceNumber = +transaction.gasPrice.toString(16);
+      // const transactionFee = ((gasPriceNumber * gasNumber) / 1000000000 / 1000000000).toFixed(9);
+      // console.log(transactionFee);
+
+      return {
+        ...transaction,
+        timestamp,
+        confirmations: 0,
+        transactionFee,
+      };
+    });
+
+    return modifiedTransactions;
+  } catch (err) {
+    console.log("Error in addFieldsToRecentBlockTransactions: ", err);
+    if (err.errno === -4077) console.log(`Can not get the data. Timeout exeeded. `);
+  }
+
+  // const allData = await Transaction.find();
+  // const { number = recentBlockNum, timestamp, baseFeePerGas } = recentBlock;
+  // allData.map((transaction) => ({
+  //   ...transaction,
+  //   confirmations: (transaction.blockNumber - recentBlockNum).toString(10),
+  //   timestamp,
+  // }));
 };
 
 async function etheriumCheckInLoop() {
   console.log("tick..");
-  // get recent block
+  // get recent block from etherium
   const recentBlockNum = await getRecentBlockNumber();
 
   // is it in DB already ?
-  const recentBlock = await getBlockByNumber(recentBlockNum);
-  if (recentBlock) {
+  const isRecentBlockInDB = await Block.findOne({ number: recentBlockNum });
+  if (isRecentBlockInDB) {
     etheriumCheckInLoop();
     return;
   }
+  const recentBlock = await getBlockByNumber(recentBlockNum);
 
+  // modify transactions by adding fields necessary for frontend
+  const modifiedTransactions = await addFieldsToRecentBlockTransactions(recentBlock);
+
+  const { hash, number, size, timestamp, baseFeePerGas, transactions } = recentBlock;
+
+  const minimizedBlock = {
+    hash,
+    number,
+    size,
+    timestamp,
+    baseFeePerGas,
+    transactionsCount: transactions.length,
+  };
+  // console.log("block ", minimizedBlock);
+
+  // store simplified block data to DB
+  const result = await Block.create(minimizedBlock);
+
+  await addTransactionsToDB(modifiedTransactions);
   await updateAllExistingTransactions(recentBlock);
+  console.log("DONE");
 }
 
 module.exports = {
@@ -242,7 +306,7 @@ module.exports = {
   getRecentBlockNumber,
   getFirstBlocks,
   getDataFromEtherium,
-  addBlockTransactionsToDB,
+  addTransactionsToDB,
   addBlockToDB,
   updateAllExistingTransactions,
   etheriumCheckInLoop,
