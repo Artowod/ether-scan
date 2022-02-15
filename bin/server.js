@@ -53,8 +53,8 @@ try {
     // const loopId = setInterval(etheriumCheckInLoop, 5000);
     const loopId = setTimeout(
       async function () {
-        await putFirstBlocksToDB(5);
-        //   await etheriumCheckInLoop();
+        // await putFirstBlocksToDB(10);
+        // await etheriumCheckInLoop();
       } /* etheriumCheckInLoop */,
       10000
     );

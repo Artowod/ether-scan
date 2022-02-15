@@ -17,9 +17,11 @@ async function getDataFromEtherium(params) {
 
 //+ needs for controllers
 async function addTransactionsToDB(transactions) {
+  console.log("Adding transactions to DB...");
   try {
     const result = await Transaction.create(transactions);
     if (!result) throw new Error("Bad request");
+    console.log("Transactions added.");
   } catch (err) {
     console.log("Error in addTransactionsToDB: ", err);
     if (err.errno === -4077) console.log(`Can not get the data. Timeout exeeded. `);
@@ -99,12 +101,10 @@ async function putFirstBlocksToDB(number) {
       if (await Block.findOne({ number: recentBlockNumber.toString(16) })) continue;
       const block = await getBlockByNumber(recentBlockNumber.toString(16), true);
       if (!block) continue; //in case of timeout exeeded - try again current block
-      const isBlokExists = await addBlockToDB(block);
-      if (isBlokExists) continue;
-      console.log("Adding transactions to DB...");
+      const isBlockExists = await addBlockToDB(block);
+      if (isBlockExists) continue;
       const modifiedFieldTransactions = addFieldsToBlockTransactions(block);
       await addTransactionsToDB(modifiedFieldTransactions);
-      console.log("Transactions added.");
       recentBlockNumber -= 1;
     }
     console.log("--------------------------");
@@ -172,6 +172,7 @@ function getTransactionByHash(hash) {
 
 const updateAllExistingTransactions = async (recentBlock) => {
   try {
+    console.log("Updating Confirmation Num in all transactions...");
     const allData = await Transaction.find();
     const { number: recentBlockNum } = recentBlock;
     for (const { hash, blockNumber } of allData) {
@@ -182,6 +183,7 @@ const updateAllExistingTransactions = async (recentBlock) => {
       // console.log(confirmations);
       await Transaction.findOneAndUpdate({ hash }, { confirmations });
     }
+    console.log("Updating completed.");
   } catch (err) {
     console.log("Error in updateAllExistingTransactions: ", err);
     if (err.errno === -4077) console.log(`Can not get the data. Timeout exeeded. `);
@@ -248,38 +250,38 @@ const addFieldsToBlockTransactions = (block) => {
 async function etheriumCheckInLoop() {
   console.log("tick..");
   // get recent block from etherium
-  // const recentBlockNum = await getRecentBlockNumber();
-  // console.log(recentBlockNum);
-  // // is it in DB already ?
-  // const isRecentBlockInDB = await Block.findOne({ number: recentBlockNum });
-  // if (isRecentBlockInDB || !recentBlockNum) {
-  //   etheriumCheckInLoop();
-  //   return;
-  // }
-  const recentBlockNum = "0xd8d500";
+  const recentBlockNum = await getRecentBlockNumber();
+  console.log("Recent Block num: ", recentBlockNum);
+  // is it in DB already ?
+  const isRecentBlockInDB = await Block.findOne({ number: recentBlockNum });
+  if (isRecentBlockInDB || !recentBlockNum) {
+    etheriumCheckInLoop();
+    return;
+  }
   const recentBlock = await getBlockByNumber(recentBlockNum, true);
   // modify transactions by adding fields necessary for frontend
   const modifiedTransactions = await addFieldsToBlockTransactions(recentBlock);
 
-  const { hash, number, size, timestamp, baseFeePerGas, transactions } = recentBlock;
+  // const { hash, number, size, timestamp, baseFeePerGas, transactions } = recentBlock;
 
-  const minimizedBlock = {
-    hash,
-    number,
-    size,
-    timestamp,
-    baseFeePerGas,
-    transactions,
-    transactionsCount: transactions.length,
-  };
+  // const minimizedBlock = {
+  //   hash,
+  //   number,
+  //   size,
+  //   timestamp,
+  //   baseFeePerGas,
+  //   transactions,
+  //   transactionsCount: transactions.length,
+  // };
 
-  // store simplified block data to DB
-  const result = await Block.create(minimizedBlock);
+  // // store simplified block data to DB
+  // const result = await Block.create(minimizedBlock);
 
-  addTransactionsToDB(modifiedTransactions);
-  // await updateAllExistingTransactions(recentBlock);
+  await addBlockToDB(recentBlock);
+  await addTransactionsToDB(modifiedTransactions);
+  await updateAllExistingTransactions(recentBlock);
   console.log("DONE");
-  // etheriumCheckInLoop();
+  etheriumCheckInLoop();
 }
 
 module.exports = {

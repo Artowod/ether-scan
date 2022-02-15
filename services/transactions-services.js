@@ -5,12 +5,9 @@ const { Transaction } = require("../Schemas/transaction-schema");
 
 async function getBlockTransactions(data) {
   try {
-    // console.log("Data", data);
     const block = await Block.findOne({ number: data });
     console.log("Getting Block...");
-    // let transaction;
     if (block) {
-      console.log("such block exists in DB", block);
       const transactions = await Transaction.find({ blockNumber: data });
       console.log("Transactions-count", transactions.length);
       return transactions;
@@ -25,9 +22,8 @@ async function getBlockTransactions(data) {
 
 async function getTransactionById(data) {
   try {
+    console.log("Getting Transaction By Id...");
     const transaction = await Transaction.findOne({ hash: data });
-    // let transaction = {};
-    console.log("Getting Transaction...");
     return transaction;
   } catch (error) {
     console.log("Error: ", error);
@@ -36,9 +32,9 @@ async function getTransactionById(data) {
 
 async function getTransactionsByRecipientAddr(data) {
   try {
+    console.log("Getting Transactions By Recipient Addr...");
     const transaction = await Transaction.find({ to: data });
-    // let transaction = {};
-    console.log("Getting Transaction...");
+
     return transaction;
   } catch (error) {
     console.log("Error: ", error);
@@ -47,9 +43,8 @@ async function getTransactionsByRecipientAddr(data) {
 
 async function getTransactionsBySenderAddr(data) {
   try {
+    console.log("Getting Transaction By Sender Addr...");
     const transaction = await Transaction.find({ from: data });
-    // let transaction = {};
-    console.log("Getting Transaction...");
     return transaction;
   } catch (error) {
     console.log("Error: ", error);
