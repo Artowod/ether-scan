@@ -11,6 +11,17 @@ require("dotenv").config();
 // --------------------------
 
 //+
+
+const startUpdating = async (req, res) => {
+  etheriumServices.startUpdating();
+  res.json({ message: "Initializing has been started.", status: "Success" });
+};
+
+const stopUpdating = async (req, res) => {
+  etheriumServices.stopUpdating();
+  res.json({ message: "Updaing has been stopped.", status: "Success" });
+};
+
 const getRecentBlockNumber = async (req, res, next) => {
   console.log("Getting Recent Block Number...");
   const params = {
@@ -81,6 +92,8 @@ const getTransactionByHash = async (req, res) => {
 };
 
 module.exports = {
+  startUpdating,
+  stopUpdating,
   getRecentBlockNumber,
   getBlockByNumber,
   getTransactionsByBlockNumber,

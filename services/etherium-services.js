@@ -3,6 +3,22 @@ const axios = require("axios");
 const { Block } = require("../Schemas/block-schema");
 const { Transaction } = require("../Schemas/transaction-schema");
 
+let isLoopStarted = false;
+
+async function startUpdating() {
+  try {
+    isLoopStarted = true;
+    await putFirstBlocksToDB(100);
+    await etheriumCheckInLoop();
+  } catch (err) {
+    console.log("Initializing error", err);
+  }
+}
+
+function stopUpdating() {
+  isLoopStarted = false;
+}
+
 //+ needs for controllers
 async function getDataFromEtherium(params) {
   try {
@@ -11,7 +27,7 @@ async function getDataFromEtherium(params) {
   } catch (err) {
     console.log("Error in getDataFromEtherium: ", err);
     if (err.errno === -4077) console.log(`Can not get the data. Timeout exeeded. `);
-    else next(err.errno);
+    else next(err);
   }
 }
 
@@ -86,7 +102,8 @@ async function getRecentBlockNumber() {
     const recentBlockNumber = data.result;
     return recentBlockNumber;
   } catch (err) {
-    console.log("Error in getRecentBlockNumber: ", err);
+    if (err.errno === -4077) console.log(`Can not get the block ${blockNumber}. Timeout exeeded. `);
+    else console.log("Error in getRecentBlockNumber: ", err);
   }
 }
 
@@ -130,7 +147,7 @@ async function getBlockByNumber(blockNumber, isFullTransactions = false) {
     return data.result;
   } catch (err) {
     if (err.errno === -4077) console.log(`Can not get the block ${blockNumber}. Timeout exeeded. `);
-    else console.log("Error in : getBlockByNumber. Error number is ", err.errno);
+    else console.log("Error in : getBlockByNumber. Error number is ", err);
   }
 }
 
@@ -205,7 +222,7 @@ async function printFiles () {
 
 const addFieldsToBlockTransactions = (block) => {
   try {
-    console.log(block.transactions.length);
+    console.log("Transactions: ", block.transactions.length);
     // const recentBlockTransactions = await getTransactionsByBlockNumber(recentBlock.number);
     const blockTransactions = block.transactions;
     const { timestamp, baseFeePerGas } = block;
@@ -252,7 +269,7 @@ async function etheriumCheckInLoop() {
   // get recent block from etherium
   const recentBlockNum = await getRecentBlockNumber();
   console.log("Recent Block num: ", recentBlockNum);
-  // is it in DB already ?
+
   const isRecentBlockInDB = await Block.findOne({ number: recentBlockNum });
   if (isRecentBlockInDB || !recentBlockNum) {
     etheriumCheckInLoop();
@@ -262,29 +279,17 @@ async function etheriumCheckInLoop() {
   // modify transactions by adding fields necessary for frontend
   const modifiedTransactions = await addFieldsToBlockTransactions(recentBlock);
 
-  // const { hash, number, size, timestamp, baseFeePerGas, transactions } = recentBlock;
-
-  // const minimizedBlock = {
-  //   hash,
-  //   number,
-  //   size,
-  //   timestamp,
-  //   baseFeePerGas,
-  //   transactions,
-  //   transactionsCount: transactions.length,
-  // };
-
-  // // store simplified block data to DB
-  // const result = await Block.create(minimizedBlock);
-
   await addBlockToDB(recentBlock);
   await addTransactionsToDB(modifiedTransactions);
   await updateAllExistingTransactions(recentBlock);
+  console.log("NEXT ITTERATION.");
+  if (isLoopStarted) etheriumCheckInLoop();
   console.log("DONE");
-  etheriumCheckInLoop();
 }
 
 module.exports = {
+  startUpdating,
+  stopUpdating,
   getBlockByNumber,
   getTransactionByHash,
   getTransactionsByBlockNumber,

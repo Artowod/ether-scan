@@ -14,7 +14,6 @@ const {
 //+ по id транзакции,
 //+ по номеру блока,
 // --------------------------
-
 const getTransactionsByRecipientAddr = async (req, res) => {
   const { error } = joiTransByRecipientSchema.validate(req.params.addr);
   if (error) {
