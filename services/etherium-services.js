@@ -3,12 +3,12 @@ const axios = require("axios");
 const { Block } = require("../Schemas/block-schema");
 const { Transaction } = require("../Schemas/transaction-schema");
 
-let isLoopStarted;
+let isLoopStarted = false;
 
 async function startUpdating() {
   try {
-    await putFirstBlocksToDB(30);
     isLoopStarted = true;
+    await putFirstBlocksToDB(30);
     await etheriumCheckInLoop();
   } catch (err) {
     console.log("Initializing error", err);
