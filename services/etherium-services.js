@@ -7,7 +7,7 @@ let isLoopStarted;
 
 async function startUpdating() {
   try {
-    await putFirstBlocksToDB(100);
+    await putFirstBlocksToDB(30);
     isLoopStarted = true;
     await etheriumCheckInLoop();
   } catch (err) {
