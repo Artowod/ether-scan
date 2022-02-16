@@ -14,6 +14,8 @@ const etheriumControllers = require("../controllers/etherium-controllers");
 // for PROD!---------------
 router.get("/initializing", etheriumControllers.startUpdating); //+
 router.get("/stop", etheriumControllers.stopUpdating); //+
+router.get("/status", etheriumControllers.getIsLoopStartedStatus); //+
+
 //-------------------------
 
 //------------for dev mode only----------------

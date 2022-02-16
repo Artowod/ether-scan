@@ -22,6 +22,11 @@ const stopUpdating = async (req, res) => {
   res.json({ message: "Updaing has been stopped.", status: "Success" });
 };
 
+const getIsLoopStartedStatus = async (req, res) => {
+  const status = etheriumServices.getIsLoopStartedStatus();
+  res.json({ message: "Is Loop Started? : ", status });
+};
+
 const getRecentBlockNumber = async (req, res, next) => {
   console.log("Getting Recent Block Number...");
   const params = {
@@ -94,6 +99,7 @@ const getTransactionByHash = async (req, res) => {
 module.exports = {
   startUpdating,
   stopUpdating,
+  getIsLoopStartedStatus,
   getRecentBlockNumber,
   getBlockByNumber,
   getTransactionsByBlockNumber,

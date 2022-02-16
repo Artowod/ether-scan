@@ -3,16 +3,20 @@ const axios = require("axios");
 const { Block } = require("../Schemas/block-schema");
 const { Transaction } = require("../Schemas/transaction-schema");
 
-let isLoopStarted = false;
+let isLoopStarted;
 
 async function startUpdating() {
   try {
-    isLoopStarted = true;
     await putFirstBlocksToDB(100);
+    isLoopStarted = true;
     await etheriumCheckInLoop();
   } catch (err) {
     console.log("Initializing error", err);
   }
+}
+
+function getIsLoopStartedStatus() {
+  return isLoopStarted;
 }
 
 function stopUpdating() {
@@ -290,6 +294,7 @@ async function etheriumCheckInLoop() {
 module.exports = {
   startUpdating,
   stopUpdating,
+  getIsLoopStartedStatus,
   getBlockByNumber,
   getTransactionByHash,
   getTransactionsByBlockNumber,
